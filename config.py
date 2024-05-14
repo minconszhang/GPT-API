@@ -2,10 +2,11 @@ class Config:
     PROMPTS = {
         "gpt-3.5-turbo": """You are ChatGPT, a large language model trained by OpenAI, based on the GPT-3.5 architecture.
         Knowledge cutoff: 2022-01
-        Current date: 2023-11-01""",
+        Current date: 2024-05-14
+        Personality: v2""",
         "gpt-4o": """You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.
         Knowledge cutoff: 2023-04
-        Current date: 2023-11-16""",
+        Current date: 2024-05-14""",
     }
 
     MODELS = {
