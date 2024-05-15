@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./App.css";
 
 const backendUrl = "http://127.0.0.1:5000";
+
+const MODELS = ["gpt-3.5-turbo", "gpt-4o"];
 
 const App = () => {
   const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
@@ -36,27 +39,50 @@ const App = () => {
   };
 
   return (
-    <div>
-      <h1>Choose a model:</h1>
-      <select value={selectedModel} onChange={handleChangeModel}>
-        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-        {/* Add more model options here */}
-      </select>
+    <div className="container">
+      <div className="header">
+        <select
+          className="select-model"
+          value={selectedModel}
+          onChange={handleChangeModel}
+        >
+          {MODELS.map((model, index) => (
+            <option key={index} value={model}>
+              {model}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <label>
-          Message:
-          <input type="text" value={userMessage} onChange={handleUserInput} />
-        </label>
-        <button type="submit">Send</button>
-      </form>
+      <div className="dialogue-container">
+        <div className="dialogue">
+          <h2>Dialogue:</h2>
+          <p className="user-message">You: {userMessage}</p>
+          <p className="bot-message">Bot: {responseMessage}</p>
+        </div>
+      </div>
 
-      <h2>Response:</h2>
-      <p>{responseMessage}</p>
+      <div className="input-container">
+        <form className="form" onSubmit={handleSubmit}>
+          <label className="form-label">
+            Message:
+            <input
+              className="form-input"
+              type="text"
+              value={userMessage}
+              onChange={handleUserInput}
+            />
+          </label>
+          <button className="form-button" type="submit">
+            Send
+          </button>
+        </form>
+      </div>
 
-      <h2>Usage:</h2>
-      <p>Prompt tokens: {promptTokens}</p>
-      <p>Completion tokens: {completionTokens}</p>
+      <div className="token-container">
+        <p className="token-info">Prompt tokens: {promptTokens}</p>
+        <p className="token-info">Completion tokens: {completionTokens}</p>
+      </div>
     </div>
   );
 };
