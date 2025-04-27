@@ -1,9 +1,14 @@
 class Config:
     PROMPTS = {
-        "gpt-3.5-turbo": """You are ChatGPT, a large language model trained by OpenAI, based on the GPT-3.5 architecture.
-        Knowledge cutoff: 2022-01
-        Current date: 2024-05-14
-        Personality: v2""",
+        "gpt-4.1-mini": """
+        You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.
+        Personality: v2
+        """,
+        "gpt-4.1-nano": """
+        You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.
+        Personality: v2
+        You are trained on data up to October 2023.
+        """,
         "gpt-4o": """You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.
         Knowledge cutoff: 2023-10
         Current date: 2024-05-14
@@ -12,17 +17,17 @@ class Config:
     }
 
     MODELS = {
-        "1": "gpt-3.5-turbo",
-        "2": "gpt-4o",
+        "1": "gpt-4.1-mini",
+        "2": "gpt-4.1-nano",
     }
 
     PRICES = {
-        "gpt-3.5-turbo": {
-            "prompt_tokens": 0.5,
-            "completion_tokens": 1.5,
+        "gpt-4.1-mini": {
+            "prompt_tokens": 0.4,
+            "completion_tokens": 1.6,
         },
-        "gpt-4o": {
-            "prompt_tokens": 5,
-            "completion_tokens": 15,
+        "gpt-4.1-nano": {
+            "prompt_tokens": 0.1,
+            "completion_tokens": 0.4,
         },
     }
