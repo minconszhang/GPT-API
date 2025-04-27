@@ -1,7 +1,6 @@
 from openai import OpenAI
 from config import Config
-
-client = OpenAI()
+from common import get_response
 
 def get_user_input(prompt):
     while True:
@@ -22,15 +21,6 @@ def choose_model() -> str:
         "Enter the number of the model you want to use (gpt-4.1-mini): ").strip().lower()
     
     return model
-
-
-def get_response(model, messages):
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages
-    )
-
-    return response
 
 
 def main():

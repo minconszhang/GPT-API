@@ -1,13 +1,13 @@
-import React, { useState } from "react";
 import axios from "axios";
+import React, { useState } from "react";
 import "./App.css";
 
 const backendUrl = "http://127.0.0.1:5000";
 
-const MODELS = ["gpt-3.5-turbo", "gpt-4o"];
+const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano"];
 
 const App = () => {
-  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [selectedModel, setSelectedModel] = useState("gpt-4.1-nano");
   const [userMessage, setUserMessage] = useState("");
   const [responseMessage, setResponseMessage] = useState("");
   const [promptTokens, setPromptTokens] = useState(0);
