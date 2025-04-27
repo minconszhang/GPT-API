@@ -12,7 +12,9 @@ def chat():
     model = data.get('model')
     user_message = data.get('userMessage')
 
-    response_message = "This is a sample response."
+    
+
+    response_message = model
     prompt_tokens = 10
     completion_tokens = 20
 

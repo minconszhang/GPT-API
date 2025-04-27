@@ -1,6 +1,7 @@
 from openai import OpenAI
 from config import Config
 
+client = OpenAI()
 
 def get_user_input(prompt):
     while True:
@@ -11,20 +12,36 @@ def get_user_input(prompt):
             print("Please enter a non-empty message.")
 
 
+def choose_model() -> str:
+    print("Choose a model:")
+
+    for model_name in Config.MODELS:
+        print(f"{model_name}: {Config.MODELS[model_name]}")
+
+    model = input(
+        "Enter the number of the model you want to use (gpt-4.1-mini): ").strip().lower()
+    
+    return model
+
+
+def get_response(model, messages):
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages
+    )
+
+    return response
+
+
 def main():
-    client = OpenAI()
     messages = []
 
     prompt_tokens = 0
     completion_tokens = 0
 
-    print("Choose a model:")
-    for model_name in Config.MODELS:
-        print(f"{model_name}: {Config.MODELS[model_name]}")
+    model_name = choose_model()
 
-    selected_model = input(
-        "Enter the number of the model you want to use (gpt-4.1-mini): ").strip().lower()
-    model = Config.MODELS.get(selected_model, Config.MODELS["1"])
+    model = Config.MODELS.get(model_name, Config.MODELS["1"])
     prompt = Config.PROMPTS.get(model, Config.PROMPTS["gpt-4.1-mini"])
 
     messages.append({"role": "system", "content": prompt})
@@ -39,10 +56,7 @@ def main():
 
         messages.append({"role": "user", "content": user_message})
 
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages
-        )
+        response = get_response(model, messages)
 
         print(response.choices[0].message.content)
 
