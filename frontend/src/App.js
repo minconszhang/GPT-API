@@ -1,90 +1,112 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 const backendUrl = "http://127.0.0.1:5000";
-
 const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano"];
 
-const App = () => {
-  const [selectedModel, setSelectedModel] = useState("gpt-4.1-nano");
-  const [userMessage, setUserMessage] = useState("");
-  const [responseMessage, setResponseMessage] = useState("");
+function App() {
+  const [selectedModel, setSelectedModel] = useState(MODELS[1]);
+  const [conversationId, setConversationId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
   const [promptTokens, setPromptTokens] = useState(0);
   const [completionTokens, setCompletionTokens] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
 
-  const handleChangeModel = (event) => {
-    setSelectedModel(event.target.value);
-  };
+  // Auto-scroll
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-  const handleUserInput = (event) => {
-    setUserMessage(event.target.value);
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+    // Locally reflect user message
+    setMessages((prev) => [...prev, { sender: "user", text: input }]);
+    setLoading(true);
 
     try {
-      const response = await axios.post(`${backendUrl}/api/chat`, {
+      const res = await axios.post(`${backendUrl}/api/chat`, {
         model: selectedModel,
-        userMessage: userMessage,
+        userMessage: input,
+        conversationId: conversationId,
       });
 
-      setResponseMessage(response.data.message);
-      setPromptTokens(response.data.promptTokens);
-      setCompletionTokens(response.data.completionTokens);
-    } catch (error) {
-      console.error("Error:", error);
+      // Update conversationId (new or existing)
+      setConversationId(res.data.conversationId);
+
+      // Append bot response
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: res.data.message },
+      ]);
+      setPromptTokens(res.data.promptTokens);
+      setCompletionTokens(res.data.completionTokens);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Error, please try again." },
+      ]);
+    } finally {
+      setInput("");
+      setLoading(false);
     }
   };
 
   return (
     <div className="container">
-      <div className="header">
+      <header className="header">
         <select
           className="select-model"
           value={selectedModel}
-          onChange={handleChangeModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
         >
-          {MODELS.map((model, index) => (
-            <option key={index} value={model}>
-              {model}
+          {MODELS.map((m) => (
+            <option key={m} value={m}>
+              {m}
             </option>
           ))}
         </select>
-      </div>
+      </header>
 
-      <div className="dialogue-container">
-        <div className="dialogue">
-          <h2>Dialogue:</h2>
-          <p className="user-message">You: {userMessage}</p>
-          <p className="bot-message">Bot: {responseMessage}</p>
-        </div>
-      </div>
+      <main ref={scrollRef} className="dialogue-container">
+        {messages.map((m, i) => (
+          <div key={i} className={`message ${m.sender}`}>
+            <strong>{m.sender === "user" ? "You" : "Bot"}:</strong>
+            <span>{m.text}</span>
+          </div>
+        ))}
+        {loading && <p className="loading">Bot is typing...</p>}
+      </main>
 
-      <div className="input-container">
-        <form className="form" onSubmit={handleSubmit}>
-          <label className="form-label">
-            Message:
-            <input
-              className="form-input"
-              type="text"
-              value={userMessage}
-              onChange={handleUserInput}
-            />
-          </label>
-          <button className="form-button" type="submit">
+      <footer className="input-container">
+        <form onSubmit={handleSubmit} className="form">
+          <input
+            className="form-input"
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message..."
+            disabled={loading}
+          />
+          <button className="form-button" type="submit" disabled={loading}>
             Send
           </button>
         </form>
-      </div>
+      </footer>
 
       <div className="token-container">
-        <p className="token-info">Prompt tokens: {promptTokens}</p>
-        <p className="token-info">Completion tokens: {completionTokens}</p>
+        <span className="token-info">Prompt: {promptTokens}</span>
+        <span className="token-info">Completion: {completionTokens}</span>
       </div>
     </div>
   );
-};
+}
 
 export default App;

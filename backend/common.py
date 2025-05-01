@@ -1,7 +1,7 @@
 from openai import OpenAI
-from config import Config
 
 client = OpenAI()
+
 
 def get_response(model, messages):
     response = client.chat.completions.create(
@@ -10,4 +10,3 @@ def get_response(model, messages):
     )
 
     return response
-

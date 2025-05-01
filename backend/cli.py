@@ -1,6 +1,6 @@
-from openai import OpenAI
 from config import Config
 from common import get_response
+
 
 def get_user_input(prompt):
     while True:
@@ -19,7 +19,7 @@ def choose_model() -> str:
 
     model = input(
         "Enter the number of the model you want to use (gpt-4.1-mini): ").strip().lower()
-    
+
     return model
 
 
@@ -36,7 +36,8 @@ def main():
 
     messages.append({"role": "system", "content": prompt})
 
-    print(f"I am ChatGPT {model}. How can I assist you today? (Type 'exit' to quit.)")
+    print(
+        f"I am ChatGPT {model}. How can I assist you today? (Type 'exit' to quit.)")
 
     while True:
         user_message = get_user_input("")
