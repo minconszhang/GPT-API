@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import "./App.css";
 
 const backendUrl = "http://127.0.0.1:5000";
@@ -37,10 +38,7 @@ function App() {
         conversationId: conversationId,
       });
 
-      // Update conversationId (new or existing)
       setConversationId(res.data.conversationId);
-
-      // Append bot response
       setMessages((prev) => [
         ...prev,
         { sender: "bot", text: res.data.message },
@@ -60,7 +58,7 @@ function App() {
   };
 
   return (
-    <div className="container">
+    <div className="app-container">
       <header className="header">
         <select
           className="select-model"
@@ -79,7 +77,7 @@ function App() {
         {messages.map((m, i) => (
           <div key={i} className={`message ${m.sender}`}>
             <strong>{m.sender === "user" ? "You" : "Bot"}:</strong>
-            <span>{m.text}</span>
+            <ReactMarkdown>{m.text}</ReactMarkdown>
           </div>
         ))}
         {loading && <p className="loading">Bot is typing...</p>}
@@ -99,12 +97,12 @@ function App() {
             Send
           </button>
         </form>
-      </footer>
 
-      <div className="token-container">
-        <span className="token-info">Prompt: {promptTokens}</span>
-        <span className="token-info">Completion: {completionTokens}</span>
-      </div>
+        <div className="token-container">
+          <span className="token-info">Prompt: {promptTokens} </span>
+          <span className="token-info">Completion: {completionTokens}</span>
+        </div>
+      </footer>
     </div>
   );
 }
