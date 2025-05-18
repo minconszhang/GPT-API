@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import "./App.css";
 
-const backendUrl = "http://127.0.0.1:5000";
+const backendUrl = "http://127.0.0.1:3888";
 const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano"];
 
 function App() {
@@ -57,6 +57,15 @@ function App() {
     }
   };
 
+  // Reset conversation state
+  const startNewChat = () => {
+    setConversationId(null);
+    setMessages([]);
+    setPromptTokens(0);
+    setCompletionTokens(0);
+    setInput("");
+  };
+
   return (
     <div className="app-container">
       <header className="header">
@@ -71,6 +80,13 @@ function App() {
             </option>
           ))}
         </select>
+        <button
+          className="new-chat-button"
+          onClick={startNewChat}
+          disabled={loading}
+        >
+          Start New Chat
+        </button>
       </header>
 
       <main ref={scrollRef} className="dialogue-container">
