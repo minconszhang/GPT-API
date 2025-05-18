@@ -1,9 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
+import { Prompt } from './prompt';
 
-// Use the OpenAI SDK type for messages
 import type { ChatCompletionMessageParam } from 'openai/resources/chat';
 
 @Injectable()
@@ -24,7 +23,7 @@ export class ChatService {
     if (!convId) {
       convId = uuidv4();
       this.conversations[convId] = [
-        { role: 'system', content: this.config.get(`prompts.${model}`) || '' },
+        { role: 'system', content: Prompt.getPrompt(model) },
       ];
     }
 
@@ -48,6 +47,4 @@ export class ChatService {
       completionTokens: response.usage?.completion_tokens ?? 0,
     };
   }
-
-  constructor(private readonly config: ConfigService) {}
 }
