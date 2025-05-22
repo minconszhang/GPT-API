@@ -7,3 +7,6 @@ frontend/package-lock.json
 server/dist
 server/node_modules
 server/build
+
+nginx/conf.d
+nginx/logs
