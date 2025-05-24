@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import { Prompt } from './prompt';
@@ -55,6 +55,11 @@ export class ChatService {
 
     this.tokenUsage[convId].promptTokens += currentPromptTokens;
     this.tokenUsage[convId].completionTokens += currentCompletionTokens;
+
+    Logger.log(
+      `Model: ${model}, Prompt Tokens: ${currentPromptTokens}, Completion Tokens: ${currentCompletionTokens}`,
+      'ChatService',
+    );
 
     return {
       conversationId: convId,
