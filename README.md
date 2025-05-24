@@ -14,11 +14,10 @@ This system provides:
 ## Architecture
 
 ```
-├── backend/       # Python API backend
 ├── bob/           # Next.js frontend application
 ├── data/          # Data persistence directory
 ├── nginx/         # Nginx configuration
-└── server/        # NestJS server (optional)
+└── server/        # NestJS server
 ```
 
 ## Prerequisites
@@ -95,7 +94,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 
 ## Backend API
 
-The Python backend provides endpoints to interact with OpenAI's GPT models. API documentation is available after running the application.
+The NestJS backend provides endpoints to interact with OpenAI's GPT models. API documentation is available after running the application.
 
 ## Security Notes
 
