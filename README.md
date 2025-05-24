@@ -38,25 +38,13 @@ htpasswd -c nginx/.htpasswd myuser
 
 ### 2. Environment Configuration
 
-Create a
-
-.env
-
-file at the root of your project based on the provided
-
-.env.example
-
-:
+Create a `.env` file at the root of your project based on the provided `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit the
-
-.env
-
-file with your specific settings, including your OpenAI API key.
+Edit the `.env` file with your specific settings, including your OpenAI API key.
 
 ### 3. SSL Certificate
 
@@ -80,30 +68,13 @@ Build and start the Docker environment:
 docker compose up --build -d
 ```
 
-## Frontend Development
-
-The frontend ("bob") is built with Next.js 15.3.2 and React 19. To develop locally:
-
-```bash
-cd bob
-npm install
-npm run dev
-```
-
-Visit [http://localhost:3000](http://localhost:3000) to see the application.
-
 ## Backend API
 
 The NestJS backend provides endpoints to interact with OpenAI's GPT models. API documentation is available after running the application.
 
 ## Security Notes
 
-- API keys and credentials are stored in the
-
-.env
-
-file which is not committed to version control
-
+- API keys and credentials are stored in the `.env` file which is not committed to version control
 - HTTPS is enforced through Nginx with Let's Encrypt certificates
 - Basic authentication is required to access the API
 
