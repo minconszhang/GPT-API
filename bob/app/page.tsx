@@ -131,6 +131,11 @@ export default function Page() {
             placeholder="Type a message..."
             disabled={loading}
             onKeyDown={(e) => {
+              // Skip handling if this is part of IME composition
+              if (e.nativeEvent.isComposing) {
+                return;
+              }
+
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 if (input.trim()) handleSubmit(e);
