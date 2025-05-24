@@ -14,6 +14,7 @@ export class ChatService {
     string,
     { promptTokens: number; completionTokens: number }
   > = {};
+  private readonly cost: Record<string, number> = {};
 
   async processChat(
     model: string,
@@ -31,10 +32,15 @@ export class ChatService {
         { role: 'system', content: Prompt.getPrompt(model) },
       ];
       this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
+      this.cost[convId] = 0;
     }
 
     if (!this.tokenUsage[convId]) {
       this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
+    }
+
+    if (!this.cost[convId]) {
+      this.cost[convId] = 0;
     }
 
     const history = this.conversations[convId] || [];
@@ -56,8 +62,14 @@ export class ChatService {
     this.tokenUsage[convId].promptTokens += currentPromptTokens;
     this.tokenUsage[convId].completionTokens += currentCompletionTokens;
 
+    this.cost[convId] +=
+      (currentPromptTokens * Prompt.getPrice(model).prompt_tokens) / 1000000;
+    this.cost[convId] +=
+      (currentCompletionTokens * Prompt.getPrice(model).completion_tokens) /
+      1000000;
+
     Logger.log(
-      `Model: ${model}, Prompt Tokens: ${currentPromptTokens}, Completion Tokens: ${currentCompletionTokens}`,
+      `Model: ${model}, Prompt Tokens: ${currentPromptTokens}, Completion Tokens: ${currentCompletionTokens}, Cost: ${this.cost[convId].toFixed(6)}`,
       'ChatService',
     );
 
