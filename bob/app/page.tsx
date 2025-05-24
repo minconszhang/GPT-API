@@ -1,3 +1,4 @@
+// page.tsx
 "use client";
 
 import axios from "axios";
@@ -32,13 +33,7 @@ export default function Page() {
     completionTokens: number;
   }
 
-  interface ChatRequest {
-    model: string;
-    userMessage: string;
-    conversationId: string | null;
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -50,20 +45,20 @@ export default function Page() {
         model: selectedModel,
         userMessage: input,
         conversationId,
-      } as ChatRequest);
+      });
 
       setConversationId(res.data.conversationId);
       setMessages((prev) => [
         ...prev,
-        { sender: "Bob", text: res.data.message },
+        { sender: "bot", text: res.data.message },
       ]);
       setPromptTokens(res.data.promptTokens);
       setCompletionTokens(res.data.completionTokens);
-    } catch (err: unknown) {
+    } catch (err) {
       console.error(err);
       setMessages((prev) => [
         ...prev,
-        { sender: "Bob", text: "Error, please try again." },
+        { sender: "bot", text: "Oops, something went wrong." },
       ]);
     } finally {
       setInput("");
@@ -82,39 +77,46 @@ export default function Page() {
   return (
     <div className={styles.appContainer}>
       <header className={styles.header}>
-        <select
-          className={styles.selectModel}
-          value={selectedModel}
-          onChange={(e) => setSelectedModel(e.target.value)}
-          disabled={loading}
-        >
-          {MODELS.map((model) => (
-            <option key={model} value={model}>
-              {model}
-            </option>
-          ))}
-        </select>
-        <button
-          className={styles.formButton}
-          onClick={startNewChat}
-          disabled={loading}
-        >
-          Start New Chat
-        </button>
+        <div className={styles.logo}>💬 Chat Bob</div>
+        <div className={styles.controls}>
+          <select
+            className={styles.selectModel}
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            disabled={loading}
+          >
+            {MODELS.map((model) => (
+              <option key={model} value={model}>
+                {model}
+              </option>
+            ))}
+          </select>
+          <button
+            className={styles.newChatBtn}
+            onClick={startNewChat}
+            disabled={loading}
+          >
+            New Chat
+          </button>
+        </div>
       </header>
 
       <main ref={scrollRef} className={styles.dialogueContainer}>
-        {messages.map((model, i) => (
-          <div key={i} className={`${styles.message} ${styles[model.sender]}`}>
-            <strong>{model.sender === "user" ? "You" : "Bob"}:</strong>
-            <ReactMarkdown>{model.text}</ReactMarkdown>
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            className={`${styles.message} ${
+              msg.sender === "user" ? styles.userBubble : styles.botBubble
+            }`}
+          >
+            <ReactMarkdown>{msg.text}</ReactMarkdown>
           </div>
         ))}
         {loading && <p className={styles.loading}>Bob is thinking...</p>}
       </main>
 
       <footer className={styles.inputContainer}>
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className={styles.formRow}>
           <input
             className={styles.formInput}
             type="text"
@@ -124,19 +126,16 @@ export default function Page() {
             disabled={loading}
           />
           <button
-            className={styles.formButton}
+            className={styles.sendBtn}
             type="submit"
-            disabled={loading}
+            disabled={loading || !input.trim()}
           >
             Send
           </button>
         </form>
-
-        <div className={styles.tokenContainer}>
-          <span className={styles.tokenInfo}>Prompt: {promptTokens}</span>
-          <span className={styles.tokenInfo}>
-            Completion: {completionTokens}
-          </span>
+        <div className={styles.tokenInfoBar}>
+          <span>Prompt: {promptTokens}</span>
+          <span>Completion: {completionTokens}</span>
         </div>
       </footer>
     </div>
