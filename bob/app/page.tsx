@@ -6,7 +6,6 @@ import ReactMarkdown from "react-markdown";
 import styles from "../styles/Home.module.css";
 
 const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano"];
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Page() {
   const [selectedModel, setSelectedModel] = useState(MODELS[1]);
@@ -25,11 +24,6 @@ export default function Page() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  interface Message {
-    sender: string;
-    text: string;
-  }
 
   interface ChatResponse {
     conversationId: string;
@@ -52,7 +46,7 @@ export default function Page() {
     setLoading(true);
 
     try {
-      const res = await axios.post<ChatResponse>(`${backendUrl}/api/chat`, {
+      const res = await axios.post<ChatResponse>("/api/chat", {
         model: selectedModel,
         userMessage: input,
         conversationId,

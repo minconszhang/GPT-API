@@ -1,0 +1,85 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: ./bob
+    networks:
+      - appnet
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_BACKEND_URL=/api
+    ports:
+      - "3000:3000"
+    command: npm start
+
+  backend:
+    build:
+      context: ./server
+    networks:
+      - appnet
+    environment:
+      - NODE_ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "3888:3888"
+    command: npm run start:prod
+
+  nginx:
+    build:
+      context: ./nginx
+    networks:
+      - appnet
+    ports:
+      - "443:443"
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    depends_on:
+      - frontend
+      - backend
+    environment:
+      - DOMAIN=${DOMAIN}
+    command:
+      - /bin/sh
+      - -c
+      - |
+        envsubst '$${DOMAIN}' < /etc/nginx/conf.d/myapp.conf.template > /etc/nginx/conf.d/myapp.conf
+        nginx -g 'daemon off;'
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot
+    networks:
+      - appnet
+    profiles: ["new"]
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+    depends_on:
+      - nginx
+    command: >
+      certonly --standalone
+      --email ${EMAIL}
+      --agree-tos --no-eff-email 
+      -d ${DOMAIN} -d www.${DOMAIN}
+
+  certbot-renew:
+    image: certbot/certbot
+    networks:
+      - appnet
+    profiles: ["renewal"]
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+    command: >
+      renew --standalone
+      --pre-hook "docker-compose stop nginx" 
+      --post-hook "docker-compose start nginx"
+
+networks:
+  appnet:
+    driver: bridge

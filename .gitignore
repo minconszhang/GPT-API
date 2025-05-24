@@ -1,12 +1,16 @@
 __pycache__
 
-frontend/node_modules/
-frontend/node_modules/*
-frontend/package-lock.json
+bob/node_modules/
+bob/node_modules/*
 
 server/dist
 server/node_modules
 server/build
 
-nginx/conf.d
+nginx/.htpasswd
 nginx/logs
+
+data/certbot/conf/*
+data/certbot/www/*
+
+.env

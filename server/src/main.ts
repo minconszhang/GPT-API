@@ -12,6 +12,5 @@ async function bootstrap() {
   app.use(cors());
 
   await app.listen(process.env.PORT ?? 3888);
-  logger.log(`Server running on http://localhost:3888`);
 }
 bootstrap();
