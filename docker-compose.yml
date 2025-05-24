@@ -77,8 +77,6 @@ services:
       - "80:80"
     command: >
       renew --standalone
-      --pre-hook "docker-compose stop nginx" 
-      --post-hook "docker-compose start nginx"
 
 networks:
   appnet:
