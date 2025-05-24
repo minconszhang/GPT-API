@@ -117,13 +117,26 @@ export default function Page() {
 
       <footer className={styles.inputContainer}>
         <form onSubmit={handleSubmit} className={styles.formRow}>
-          <input
-            className={styles.formInput}
-            type="text"
+          <textarea
+            className={`${styles.formInput} ${styles.textareaInput}`}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+
+              e.target.style.height = "auto";
+              const maxHeight = 200;
+              const scrollHeight = e.target.scrollHeight;
+              e.target.style.height = Math.min(scrollHeight, maxHeight) + "px";
+            }}
             placeholder="Type a message..."
             disabled={loading}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim()) handleSubmit(e);
+              }
+            }}
+            rows={1}
           />
           <button
             className={styles.sendBtn}
