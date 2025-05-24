@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../styles/Home.module.css";
 
-const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano"];
+const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.1", "o4-mini"];
 
 export default function Page() {
-  const [selectedModel, setSelectedModel] = useState(MODELS[1]);
+  const [selectedModel, setSelectedModel] = useState(MODELS[0]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
     []

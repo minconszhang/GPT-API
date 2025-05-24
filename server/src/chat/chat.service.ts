@@ -10,6 +10,11 @@ export class ChatService {
   private readonly client = new OpenAI();
   private readonly conversations: Record<string, ChatCompletionMessageParam[]> =
     {};
+  private readonly tokenUsage: Record<
+    string,
+    { promptTokens: number; completionTokens: number }
+  > = {};
+
   async processChat(
     model: string,
     userMessage: string,
@@ -25,6 +30,11 @@ export class ChatService {
       this.conversations[convId] = [
         { role: 'system', content: Prompt.getPrompt(model) },
       ];
+      this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
+    }
+
+    if (!this.tokenUsage[convId]) {
+      this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
     }
 
     const history = this.conversations[convId] || [];
@@ -40,11 +50,17 @@ export class ChatService {
 
     this.conversations[convId] = history;
 
+    const currentPromptTokens = response.usage?.prompt_tokens ?? 0;
+    const currentCompletionTokens = response.usage?.completion_tokens ?? 0;
+
+    this.tokenUsage[convId].promptTokens += currentPromptTokens;
+    this.tokenUsage[convId].completionTokens += currentCompletionTokens;
+
     return {
       conversationId: convId,
       message: botMsg,
-      promptTokens: response.usage?.prompt_tokens ?? 0,
-      completionTokens: response.usage?.completion_tokens ?? 0,
+      promptTokens: this.tokenUsage[convId].promptTokens,
+      completionTokens: this.tokenUsage[convId].completionTokens,
     };
   }
 }
