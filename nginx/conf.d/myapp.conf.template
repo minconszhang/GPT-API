@@ -24,8 +24,11 @@ server {
     limit_req   zone=req_limit burst=5 nodelay;
     limit_conn  conn_limit 10;
 
+    # Todo not safe
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline';" always;
+
     location / {
-        proxy_pass          http://frontend;
+        proxy_pass          http://frontend/;
         proxy_http_version  1.1;
         proxy_set_header    Host $host;
         proxy_set_header    X-Real-IP $remote_addr;
@@ -39,12 +42,30 @@ server {
         limit_req   zone=req_limit burst=3 nodelay;
         limit_conn  conn_limit 5;
 
-        proxy_pass          http://backend;
+        proxy_pass          http://backend/;
         proxy_http_version  1.1;
         proxy_set_header    Host $host;
         proxy_set_header    X-Real-IP $remote_addr;
         proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header    Upgrade $http_upgrade;
         proxy_set_header    Connection "upgrade";
+    }
+
+    # 加这个 block 处理 _next 路由（Next.js 静态资源）
+    location /_next/ {
+        proxy_pass http://frontend;  # 注意没有 /
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # 加这个处理静态资源（如 public/ 中的图片或字体）
+    location /static/ {
+        proxy_pass http://frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 }
