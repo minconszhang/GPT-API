@@ -81,6 +81,7 @@ services:
 networks:
   appnet:
     driver: bridge
+    name: gpt-api_appnet
     ipam:
       driver: default
       config:
