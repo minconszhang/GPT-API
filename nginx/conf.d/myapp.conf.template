@@ -8,36 +8,43 @@ upstream backend {
 
 server {
     listen 443 ssl http2 default_server;
-
     server_name ${DOMAIN} www.${DOMAIN};
 
     ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
-    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
 
-    auth_basic "Restricted Access";
+    # 基本认证
+    auth_basic           "Restricted Access";
     auth_basic_user_file /etc/nginx/.htpasswd;
 
+    # 全局限流和连接数限制
+    limit_req   zone=req_limit burst=5 nodelay;
+    limit_conn  conn_limit 10;
+
     location / {
-        proxy_pass http://frontend;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_pass          http://frontend;
+        proxy_http_version  1.1;
+        proxy_set_header    Host $host;
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header    Upgrade $http_upgrade;
+        proxy_set_header    Connection "upgrade";
     }
 
     location /api/ {
-        proxy_pass http://backend;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        # /api 额外更严格限流
+        limit_req   zone=req_limit burst=3 nodelay;
+        limit_conn  conn_limit 5;
+
+        proxy_pass          http://backend;
+        proxy_http_version  1.1;
+        proxy_set_header    Host $host;
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header    Upgrade $http_upgrade;
+        proxy_set_header    Connection "upgrade";
     }
 }
