@@ -122,7 +122,7 @@ export default function Page() {
       </main>
 
       <footer className={styles.inputContainer}>
-        <form onSubmit={handleSubmit} className={styles.formRow}>
+        <form className={styles.formRow}>
           <textarea
             className={`${styles.formInput} ${styles.textareaInput}`}
             value={input}
@@ -144,14 +144,28 @@ export default function Page() {
 
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                if (input.trim()) handleSubmit(e);
+                if (input.trim()) {
+                  // Create a synthetic form event
+                  const formEvent = {
+                    preventDefault: () => {},
+                  } as React.FormEvent;
+                  handleSubmit(formEvent);
+                }
               }
             }}
             rows={1}
           />
           <button
             className={styles.sendBtn}
-            type="submit"
+            type="button"
+            onClick={() => {
+              if (input.trim()) {
+                const formEvent = {
+                  preventDefault: () => {},
+                } as React.FormEvent;
+                handleSubmit(formEvent);
+              }
+            }}
             disabled={loading || !input.trim()}
           >
             Send
