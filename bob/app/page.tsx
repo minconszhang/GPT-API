@@ -52,6 +52,7 @@ export default function Page() {
     if (!input.trim()) return;
 
     setMessages((prev) => [...prev, { sender: "user", text: input }]);
+    setInput("");
     setLoading(true);
 
     try {
@@ -75,7 +76,6 @@ export default function Page() {
         { sender: "bot", text: "Oops, something went wrong." },
       ]);
     } finally {
-      setInput("");
       setLoading(false);
     }
   };
