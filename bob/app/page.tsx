@@ -22,6 +22,7 @@ export default function Page() {
   useEffect(() => {
     axios.get("/api/model-list").then((res: { data: string[] }) => {
       setModels(res.data);
+      setSelectedModel(res.data[0]);
     });
   }, []);
 
