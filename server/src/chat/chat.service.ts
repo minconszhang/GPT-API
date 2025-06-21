@@ -53,6 +53,8 @@ export class ChatService {
       messages: history,
     });
 
+    Logger.log(response, 'Response');
+
     const botMsg = response.choices[0].message.content;
     history.push({ role: 'assistant', content: botMsg });
 
