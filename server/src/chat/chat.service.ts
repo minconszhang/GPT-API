@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
-import { Prompt } from './prompt';
+import { PromptService } from '../llm/llm.service';
 
 import type { ChatCompletionMessageParam } from 'openai/resources/chat';
 
 @Injectable()
 export class ChatService {
+  constructor(private readonly prompts: PromptService) {}
+
   private readonly client = new OpenAI();
   private readonly conversations: Record<string, ChatCompletionMessageParam[]> =
     {};
@@ -29,7 +31,7 @@ export class ChatService {
     if (!convId) {
       convId = uuidv4();
       this.conversations[convId] = [
-        { role: 'system', content: Prompt.getPrompt(model) },
+        { role: 'system', content: this.prompts.getPrompt(model) },
       ];
       this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
       this.cost[convId] = 0;
@@ -63,9 +65,9 @@ export class ChatService {
     this.tokenUsage[convId].completionTokens += currentCompletionTokens;
 
     this.cost[convId] +=
-      (currentPromptTokens * Prompt.getPrice(model).prompt_tokens) / 1000000;
+      (currentPromptTokens * this.prompts.getPrice(model).prompt_tokens) / 1000000;
     this.cost[convId] +=
-      (currentCompletionTokens * Prompt.getPrice(model).completion_tokens) /
+      (currentCompletionTokens * this.prompts.getPrice(model).completion_tokens) /
       1000000;
 
     Logger.log(

@@ -1,4 +1,7 @@
-export class Prompt {
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class PromptService {
   private static readonly PROMPTS: Record<string, string> = {
     'gpt-4.1-mini': `
         You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.
@@ -37,15 +40,19 @@ export class Prompt {
     'o4-mini': { prompt_tokens: 1.1, completion_tokens: 4.4 },
   };
 
-  static getPrompt(model: string): string {
-    return this.PROMPTS[model] || '';
+  getPrompt(model: string): string {
+    return PromptService.PROMPTS[model] || '';
   }
 
-  static getModel(id: string): string {
-    return this.MODELS[id] || '';
+  getModel(id: string): string {
+    return PromptService.MODELS[id] || '';
   }
 
-  static getPrice(model: string) {
-    return this.PRICES[model] || null;
+  getPrice(model: string) {
+    return PromptService.PRICES[model] || null;
+  }
+
+  getModels() {
+    return Object.values(PromptService.MODELS);
   }
 }
