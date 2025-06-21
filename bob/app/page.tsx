@@ -6,10 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../styles/Home.module.css";
 
-const MODELS = ["gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.1", "o4-mini"];
-
 export default function Page() {
-  const [selectedModel, setSelectedModel] = useState(MODELS[0]);
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
     []
@@ -19,6 +18,12 @@ export default function Page() {
   const [completionTokens, setCompletionTokens] = useState(0);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    axios.get("/api/model-list").then((res: { data: string[] }) => {
+      setModels(res.data);
+    });
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -85,7 +90,7 @@ export default function Page() {
             onChange={(e) => setSelectedModel(e.target.value)}
             disabled={loading}
           >
-            {MODELS.map((model) => (
+            {models.map((model) => (
               <option key={model} value={model}>
                 {model}
               </option>
