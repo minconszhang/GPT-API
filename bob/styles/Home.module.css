@@ -129,6 +129,17 @@
   background: var(--success-hover, #218838);
 }
 
+.sendBtn:disabled {
+  background: #6c757d;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.sendBtn:disabled:hover {
+  background: #6c757d;
+}
+
 .tokenInfoBar {
   margin-top: 0.5rem;
   display: flex;

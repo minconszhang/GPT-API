@@ -18,7 +18,6 @@ export default function Page() {
   const [completionTokens, setCompletionTokens] = useState(0);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     axios.get("/api/model-list").then((res: { data: string[] }) => {
@@ -32,13 +31,6 @@ export default function Page() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  // Focus textarea when loading finishes
-  useEffect(() => {
-    if (!loading && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [loading]);
 
   interface ChatResponse {
     conversationId: string;
@@ -143,7 +135,6 @@ export default function Page() {
               e.target.style.height = Math.min(scrollHeight, maxHeight) + "px";
             }}
             placeholder="Type a message..."
-            disabled={loading}
             onKeyDown={(e) => {
               // Skip handling if this is part of IME composition
               if (e.nativeEvent.isComposing) {
@@ -152,7 +143,7 @@ export default function Page() {
 
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                if (input.trim()) {
+                if (input.trim() && !loading) {
                   // Create a synthetic form event
                   const formEvent = {
                     preventDefault: () => {},
@@ -162,7 +153,6 @@ export default function Page() {
               }
             }}
             rows={1}
-            ref={textareaRef}
           />
           <button
             className={styles.sendBtn}
