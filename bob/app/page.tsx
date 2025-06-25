@@ -9,6 +9,7 @@ import styles from "../styles/Home.module.css";
 export default function Page() {
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
     []
@@ -20,10 +21,20 @@ export default function Page() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    axios.get("/api/model-list").then((res: { data: string[] }) => {
-      setModels(res.data);
-      setSelectedModel(res.data[0]);
-    });
+    setModelsLoading(true);
+    axios.get("/api/model-list")
+      .then((res: { data: string[] }) => {
+        setModels(res.data);
+        setSelectedModel(res.data[0]);
+        setModelsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Failed to load models:", error);
+        const defaultModels = ["gpt-4.1-mini"];
+        setModels(defaultModels);
+        setSelectedModel(defaultModels[0]);
+        setModelsLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -89,13 +100,17 @@ export default function Page() {
             className={styles.selectModel}
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            disabled={loading}
+            disabled={loading || modelsLoading}
           >
-            {models.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
+            {modelsLoading ? (
+              <option>Loading models...</option>
+            ) : (
+              models.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))
+            )}
           </select>
           <button
             className={styles.newChatBtn}

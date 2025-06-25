@@ -43,6 +43,7 @@ services:
       - /bin/sh
       - -c
       - |
+        sleep 10
         envsubst '$${DOMAIN}' < /etc/nginx/conf.d/myapp.conf.template > /etc/nginx/conf.d/myapp.conf
         nginx -g 'daemon off;'
     restart: unless-stopped
