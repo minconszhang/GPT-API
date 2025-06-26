@@ -1,27 +1,27 @@
-# 构建阶段
+# Build stage
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# 安装依赖
+# Install dependencies
 COPY package.json package-lock.json ./
 RUN npm install
 
-# 拷贝源代码并构建 NestJS
+# Copy source code and build NestJS
 COPY . .
 RUN npm run build
 
-# 生产运行阶段
+# Production run stage
 FROM node:18-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# 拷贝构建产物和依赖
+# Copy build artifacts and dependencies
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY package.json ./
+COPY --from=builder /app/package.json ./package.json
 
-# 暴露端口
+# Expose port
 EXPOSE 3888
 
-# 启动命令（你有 "start:prod" 脚本）
+# Start command
 CMD ["npm", "run", "start:prod"]
