@@ -1,24 +1,15 @@
-// page.tsx
-"use client";
-
-import { useRef, useState } from "react";
 import styles from "../styles/Home.module.css";
 import { Header } from "./components/Header";
-import { ChatClient,ChatClientHandle } from "./components/ChatClient";
+import { ChatClient } from "./components/ChatClient";
+import { ChatProvider } from "./context/ChatProvider";
 
-export default function Page() {
-  const [selectedModel, setSelectedModel] = useState<string>("");
-
-  const chatClientRef = useRef<ChatClientHandle>(null);
-
-  const resetChat = () => {
-    chatClientRef.current?.startNewChat();
-  };
-
+export default async function Page() {
   return (
     <div className={styles.appContainer}>
-      <Header resetChat={resetChat} selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
-      <ChatClient ref={chatClientRef} selectedModel={selectedModel} />
+      <ChatProvider>
+        <Header />
+        <ChatClient />
+      </ChatProvider>
     </div>
   );
 }

@@ -1,14 +1,10 @@
-// page.tsx
 "use client";
 
 import axios from "axios";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../../styles/Home.module.css";
-
-interface ChatClientProps {
-    selectedModel: string;
-}
+import { ChatContext } from "../context/ChatContext";
 
 interface ChatResponse {
     conversationId: string;
@@ -17,26 +13,32 @@ interface ChatResponse {
     completionTokens: number;
 }
 
-export interface ChatClientHandle {
-    startNewChat: () => void;
-  }
-
-export const ChatClient = forwardRef<ChatClientHandle, ChatClientProps>(({ selectedModel }, ref) => {
-    const [conversationId, setConversationId] = useState<string | null>(null);
-    const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
-        []
-    );
-    const [input, setInput] = useState("");
-    const [promptTokens, setPromptTokens] = useState(0);
-    const [completionTokens, setCompletionTokens] = useState(0);
+export const ChatClient = () => {
     const [loading, setLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { selectedModel, isNewChat, setIsNewChat } = useContext(ChatContext);
+    const [conversationId, setConversationId] = useState<string | null>(null);
+    const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+    const [promptTokens, setPromptTokens] = useState(0);
+    const [completionTokens, setCompletionTokens] = useState(0);
+    const [input, setInput] = useState("");
 
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages]);
+
+    useEffect(() => {
+        if (isNewChat) {
+            setConversationId(null);
+            setMessages([]);
+            setPromptTokens(0);
+            setCompletionTokens(0);
+            setInput("");
+            setIsNewChat(false);
+        }
+    }, [isNewChat]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,18 +72,6 @@ export const ChatClient = forwardRef<ChatClientHandle, ChatClientProps>(({ selec
             setLoading(false);
         }
     };
-
-    const startNewChat = () => {
-        setConversationId(null);
-        setMessages([]);
-        setPromptTokens(0);
-        setCompletionTokens(0);
-        setInput("");
-    };
-
-    useImperativeHandle(ref, () => ({
-        startNewChat,
-      }));
 
     return (
         <div className={styles.appContainer}>
@@ -154,6 +144,4 @@ export const ChatClient = forwardRef<ChatClientHandle, ChatClientProps>(({ selec
             </footer>
         </div>
     );
-});
-
-ChatClient.displayName = 'ChatClient';
+}

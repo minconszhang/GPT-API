@@ -2,17 +2,14 @@
 
 import styles from "../../styles/Home.module.css";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { ChatContext } from "../context/ChatContext";
 
-interface HeaderProps {
-    resetChat: () => void;
-    selectedModel: string;
-    setSelectedModel: (model: string) => void;
-}
-
-export const Header = ({ resetChat, selectedModel, setSelectedModel }: HeaderProps) => {
+export const Header = () => {
     const [modelsLoading, setModelsLoading] = useState(true);
     const [models, setModels] = useState<string[]>([]);
+
+    const { selectedModel, setSelectedModel, setIsNewChat } = useContext(ChatContext);
 
     useEffect(() => {
         setModelsLoading(true);
@@ -53,7 +50,7 @@ export const Header = ({ resetChat, selectedModel, setSelectedModel }: HeaderPro
                 </select>
                 <button
                     className={styles.newChatBtn}
-                    onClick={resetChat}
+                    onClick={() => setIsNewChat(true)}
                     disabled={modelsLoading}
                 >
                     New Chat
