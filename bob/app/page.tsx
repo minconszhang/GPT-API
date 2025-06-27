@@ -5,11 +5,10 @@ import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../styles/Home.module.css";
+import Header from "./components/Header";
 
 export default function Page() {
-  const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
-  const [modelsLoading, setModelsLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
     []
@@ -19,23 +18,6 @@ export default function Page() {
   const [completionTokens, setCompletionTokens] = useState(0);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setModelsLoading(true);
-    axios.get("/api/model-list")
-      .then((res: { data: string[] }) => {
-        setModels(res.data);
-        setSelectedModel(res.data[0]);
-        setModelsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Failed to load models:", error);
-        const defaultModels = ["gpt-4.1-mini"];
-        setModels(defaultModels);
-        setSelectedModel(defaultModels[0]);
-        setModelsLoading(false);
-      });
-  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -93,42 +75,14 @@ export default function Page() {
 
   return (
     <div className={styles.appContainer}>
-      <header className={styles.header}>
-        <div className={styles.logo}>💬 Chat Bob</div>
-        <div className={styles.controls}>
-          <select
-            className={styles.selectModel}
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            disabled={loading || modelsLoading}
-          >
-            {modelsLoading ? (
-              <option>Loading models...</option>
-            ) : (
-              models.map((model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))
-            )}
-          </select>
-          <button
-            className={styles.newChatBtn}
-            onClick={startNewChat}
-            disabled={loading}
-          >
-            New Chat
-          </button>
-        </div>
-      </header>
+      <Header resetChat={startNewChat} selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
 
       <main ref={scrollRef} className={styles.dialogueContainer}>
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`${styles.message} ${
-              msg.sender === "user" ? styles.userBubble : styles.botBubble
-            }`}
+            className={`${styles.message} ${msg.sender === "user" ? styles.userBubble : styles.botBubble
+              }`}
           >
             <ReactMarkdown>{msg.text}</ReactMarkdown>
           </div>
@@ -161,7 +115,7 @@ export default function Page() {
                 if (input.trim() && !loading) {
                   // Create a synthetic form event
                   const formEvent = {
-                    preventDefault: () => {},
+                    preventDefault: () => { },
                   } as React.FormEvent;
                   handleSubmit(formEvent);
                 }
@@ -175,7 +129,7 @@ export default function Page() {
             onClick={() => {
               if (input.trim()) {
                 const formEvent = {
-                  preventDefault: () => {},
+                  preventDefault: () => { },
                 } as React.FormEvent;
                 handleSubmit(formEvent);
               }
