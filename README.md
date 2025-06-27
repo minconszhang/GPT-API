@@ -48,6 +48,12 @@ Edit the `.env` file with your specific settings, including your OpenAI API key.
 
 ### 3. SSL Certificate
 
+Build first:
+
+```bash
+docker compose build
+```
+
 For a new SSL certificate:
 
 ```bash
