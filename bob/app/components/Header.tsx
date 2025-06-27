@@ -10,7 +10,7 @@ interface HeaderProps {
     setSelectedModel: (model: string) => void;
 }
 
-export default function Header({ resetChat, selectedModel, setSelectedModel }: HeaderProps) {
+export const Header = ({ resetChat, selectedModel, setSelectedModel }: HeaderProps) => {
     const [modelsLoading, setModelsLoading] = useState(true);
     const [models, setModels] = useState<string[]>([]);
 
