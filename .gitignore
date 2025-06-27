@@ -14,3 +14,5 @@ data/certbot/conf/*
 data/certbot/www/*
 
 .env
+
+.DS_Store
