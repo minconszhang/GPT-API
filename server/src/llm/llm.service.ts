@@ -30,6 +30,13 @@ export class PromptService {
     '4': 'o4-mini',
   };
 
+  private static readonly MODELS_NAME: Record<string, string> = {
+    'gpt-4.1-mini': '4.1 基础版',
+    'gpt-4.1-nano': '4.1 低级版',
+    'gpt-4.1': '4.1 完全版',
+    'o4-mini': 'O4 思考版',
+  };
+
   private static readonly PRICES: Record<
     string,
     { prompt_tokens: number; completion_tokens: number }
@@ -53,6 +60,9 @@ export class PromptService {
   }
 
   getModels() {
-    return Object.values(PromptService.MODELS);
+    return {
+      models: Object.values(PromptService.MODELS),
+      modelsName: Object.values(PromptService.MODELS_NAME),
+    };
   }
 }

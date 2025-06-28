@@ -5,9 +5,15 @@ export async function getModelList() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        return data;
+        return {
+            models: data.models,
+            modelsName: data.modelsName,
+        };
     } catch (error) {
         console.error('Failed to fetch model list:', error);
-        return ["gpt-4o-mini"];
+        return {
+            models: ["gpt-4o-mini"],
+            modelsName: ["4.1 基础版"],
+        };
     }
 }

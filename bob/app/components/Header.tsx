@@ -5,7 +5,10 @@ import { useContext } from "react";
 import { ChatContext } from "../context/ChatContext";
 
 interface HeaderProps {
-    modelList: string[];
+    modelList: {
+        models: string[];
+        modelsName: string[];
+    };
 }
 
 export const Header = ({ modelList }: HeaderProps) => {
@@ -20,9 +23,9 @@ export const Header = ({ modelList }: HeaderProps) => {
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
                 >
-                    {modelList.map((model) => (
+                    {modelList.models.map((model, index) => (
                         <option key={model} value={model}>
-                            {model}
+                            {modelList.modelsName[index]}
                         </option>
                     ))}
                 </select>
