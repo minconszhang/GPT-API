@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "../../styles/Home.module.css";
-import { useContext} from "react";
+import { useContext } from "react";
 import { ChatContext } from "../context/ChatContext";
 
 interface HeaderProps {
@@ -19,7 +19,6 @@ export const Header = ({ modelList }: HeaderProps) => {
                     className={styles.selectModel}
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-
                 >
                     {modelList.map((model) => (
                         <option key={model} value={model}>
@@ -30,7 +29,6 @@ export const Header = ({ modelList }: HeaderProps) => {
                 <button
                     className={styles.newChatBtn}
                     onClick={() => setIsNewChat(true)}
-
                 >
                     New Chat
                 </button>
