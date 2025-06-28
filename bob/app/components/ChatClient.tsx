@@ -74,7 +74,7 @@ export const ChatClient = () => {
     };
 
     return (
-        <div className={styles.appContainer}>
+        <>
             <main ref={scrollRef} className={styles.dialogueContainer}>
                 {messages.map((msg, idx) => (
                     <div
@@ -142,6 +142,6 @@ export const ChatClient = () => {
                     <span>Completion: {completionTokens}</span>
                 </div>
             </footer>
-        </div>
+        </>
     );
 }
