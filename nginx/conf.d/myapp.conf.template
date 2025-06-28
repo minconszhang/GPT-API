@@ -21,7 +21,7 @@ server {
     auth_basic_user_file /etc/nginx/.htpasswd;
 
     # 全局限流和连接数限制
-    limit_req   zone=req_limit burst=5 nodelay;
+    limit_req   zone=req_limit burst=10 nodelay;
     limit_conn  conn_limit 10;
 
     # Todo not safe
@@ -39,7 +39,7 @@ server {
 
     location /api/ {
         # /api 额外更严格限流
-        limit_req   zone=req_limit burst=3 nodelay;
+        limit_req   zone=req_limit burst=5 nodelay;
         limit_conn  conn_limit 5;
 
         proxy_pass          http://backend;
