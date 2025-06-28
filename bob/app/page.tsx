@@ -7,12 +7,12 @@ import { getModelList } from "./api/getModelList";
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const { models, modelsName } = await getModelList();
+  const modelsName = await getModelList();
 
   return (
     <div className={styles.appContainer}>
       <ChatProvider>
-        <Header modelList={{ models, modelsName }} />
+        <Header modelList={modelsName} />
         <ChatClient />
       </ChatProvider>
     </div>

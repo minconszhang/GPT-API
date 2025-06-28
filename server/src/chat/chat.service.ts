@@ -31,7 +31,10 @@ export class ChatService {
     if (!convId) {
       convId = uuidv4();
       this.conversations[convId] = [
-        { role: 'system', content: this.prompts.getPrompt(model) },
+        {
+          role: 'system',
+          content: this.prompts.getPromptFromModelName(model),
+        },
       ];
       this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
       this.cost[convId] = 0;
@@ -49,7 +52,7 @@ export class ChatService {
     history.push({ role: 'user', content: userMessage });
 
     const response = await this.client.chat.completions.create({
-      model,
+      model: this.prompts.getModelFromModelName(model),
       messages: history,
     });
 
@@ -67,9 +70,9 @@ export class ChatService {
     this.tokenUsage[convId].completionTokens += currentCompletionTokens;
 
     this.cost[convId] +=
-      (currentPromptTokens * this.prompts.getPrice(model).prompt_tokens) / 1000000;
+      (currentPromptTokens * this.prompts.getPrice(this.prompts.getModelFromModelName(model)).prompt_tokens) / 1000000;
     this.cost[convId] +=
-      (currentCompletionTokens * this.prompts.getPrice(model).completion_tokens) /
+      (currentCompletionTokens * this.prompts.getPrice(this.prompts.getModelFromModelName(model)).completion_tokens) /
       1000000;
 
     Logger.log(
