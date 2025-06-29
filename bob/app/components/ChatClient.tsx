@@ -5,6 +5,8 @@ import { useContext, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../../styles/Home.module.css";
 import { ChatContext } from "../context/ChatContext";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ChatResponse {
     conversationId: string;
@@ -90,8 +92,8 @@ export const ChatClient = () => {
 
             <footer className={styles.inputContainer}>
                 <form className={styles.formRow}>
-                    <textarea
-                        className={`${styles.formInput} ${styles.textareaInput}`}
+                    <Textarea
+                        className="resize-none"
                         value={input}
                         onChange={(e) => {
                             setInput(e.target.value);
@@ -121,9 +123,8 @@ export const ChatClient = () => {
                         }}
                         rows={1}
                     />
-                    <button
-                        className={styles.sendBtn}
-                        type="button"
+                    <Button
+                        className="cursor-pointer h-auto"
                         onClick={() => {
                             if (input.trim()) {
                                 const formEvent = {
@@ -135,7 +136,7 @@ export const ChatClient = () => {
                         disabled={loading || !input.trim()}
                     >
                         Send
-                    </button>
+                    </Button>
                 </form>
                 <div className={styles.tokenInfoBar}>
                     <span>Prompt: {promptTokens}</span>

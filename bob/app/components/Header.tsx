@@ -35,6 +35,7 @@ export const Header = ({ modelList }: HeaderProps) => {
                 </Select>
 
                 <Button
+                    className="cursor-pointer"
                     variant="outline"
                     onClick={() => setIsNewChat(true)}
                 >
