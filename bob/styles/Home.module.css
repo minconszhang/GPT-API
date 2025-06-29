@@ -15,11 +15,6 @@
   box-shadow: 0 2px 4px var(--shadow-color, rgba(0, 0, 0, 0.1));
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
 .controls {
   display: flex;
   gap: 1rem;

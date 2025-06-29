@@ -13,7 +13,7 @@ export const Header = ({ modelList }: HeaderProps) => {
 
     return (
         <header className={styles.header}>
-            <div className={styles.logo}>💬 Chat Bob</div>
+            <div className="text-2xl">💬 BOB</div>
             <div className={styles.controls}>
                 <select
                     className={styles.selectModel}
