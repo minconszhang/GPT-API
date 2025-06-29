@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChatContext } from "./ChatContext";
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-    const [selectedModel, setSelectedModel] = useState("gpt-4.1-mini");
+    const [selectedModel, setSelectedModel] = useState("4.1 基础版");
     const [isNewChat, setIsNewChat] = useState(false);
 
     return (
