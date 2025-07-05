@@ -1,18 +1,13 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as cors from 'cors';
 import { AppModule } from './app.module';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
-import * as pg from 'pg';
 import * as PgStore from 'connect-pg-simple';
-
-const logger = new Logger('Main');
+import { DbService } from './db/db.service';
 
 const PgSession = PgStore(session);
-const pgPool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL
-});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +15,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(session({
     store: new PgSession({
-      pool: pgPool,
+      pool: app.get(DbService).getPool(),
       tableName: 'user_session',
       pruneSessionInterval: 24 * 60 * 60,
       createTableIfMissing: true,

@@ -1,13 +1,11 @@
 import { Controller, Get, Post, Body, Session, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
-import { Pool } from 'pg'
 import * as bcrypt from 'bcrypt';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-})
+import { DbService } from '../db/db.service';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly dbService: DbService) { }
+
   @Get('status')
   getAuth(@Session() session: Record<string, any>) {
     if (session.loggedIn && session.user) {
@@ -25,7 +23,7 @@ export class AuthController {
 
     try {
       const query = 'SELECT * FROM users WHERE username = $1';
-      const result = await pool.query(query, [username]);
+      const result = await this.dbService.getPool().query(query, [username]);
 
       if (result.rows.length === 0) {
         throw new UnauthorizedException('Invalid username or password');
@@ -70,7 +68,7 @@ export class AuthController {
     const query = 'INSERT INTO users (username, password_hash) VALUES ($1, $2)';
 
     try {
-      await pool.query(query, [username, hashedPassword]);
+      await this.dbService.getPool().query(query, [username, hashedPassword]);
     } catch (error) {
       console.error('Error signing up:', error);
       throw new InternalServerErrorException('Failed to sign up');
