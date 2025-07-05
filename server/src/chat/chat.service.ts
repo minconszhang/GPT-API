@@ -1,90 +1,100 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
-import { v4 as uuidv4 } from 'uuid';
 import { PromptService } from '../llm/llm.service';
-
-import type { ChatCompletionMessageParam } from 'openai/resources/chat';
+import { DbService } from 'src/db/db.service';
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly prompts: PromptService) {}
+  constructor(private readonly prompts: PromptService, private readonly dbService: DbService) { }
 
   private readonly client = new OpenAI();
-  private readonly conversations: Record<string, ChatCompletionMessageParam[]> =
-    {};
-  private readonly tokenUsage: Record<
-    string,
-    { promptTokens: number; completionTokens: number }
-  > = {};
-  private readonly cost: Record<string, number> = {};
 
   async processChat(
     model: string,
     userMessage: string,
     conversationId?: string,
+    userId?: string,
   ) {
     if (!model || !userMessage) {
       throw new BadRequestException('model and userMessage are required');
     }
 
-    let convId = conversationId;
-    if (!convId) {
-      convId = uuidv4();
-      this.conversations[convId] = [
-        {
-          role: 'system',
-          content: this.prompts.getPromptFromModelName(model),
-        },
-      ];
-      this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
-      this.cost[convId] = 0;
+    // TODO: support multiple users in the future
+    if (!userId) {
+      userId = '1';
     }
 
-    if (!this.tokenUsage[convId]) {
-      this.tokenUsage[convId] = { promptTokens: 0, completionTokens: 0 };
+    const pool = this.dbService.getPool();
+
+    let convId = '';
+    if (!conversationId) {
+      const query = `INSERT INTO conversations (user_id) VALUES ($1) RETURNING id`;
+      const result = await pool.query(query, [userId]);
+      convId = result.rows[0].id;
+
+      const query2 = `INSERT INTO messages (conversation_id, role, content) VALUES ($1, $2, $3)`;
+      await pool.query(query2, [convId, 'system', this.prompts.getPromptFromModelName(model)]);
+    } else {
+      convId = conversationId;
     }
 
-    if (!this.cost[convId]) {
-      this.cost[convId] = 0;
-    }
+    const query3 = `SELECT role, content FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC`;
+    const history = await pool.query(query3, [convId]);
 
-    const history = this.conversations[convId] || [];
-    history.push({ role: 'user', content: userMessage });
+    const historyMessages = history.rows.map((row) => ({
+      role: row.role,
+      content: row.content,
+    }));
+
+    historyMessages.push({
+      role: 'user',
+      content: userMessage,
+    });
 
     const response = await this.client.chat.completions.create({
       model: this.prompts.getModelFromModelName(model),
-      messages: history,
+      messages: historyMessages,
     });
+
+    const botMsg = response.choices[0].message.content ?? '';
 
     Logger.log(response, 'Response');
 
-    const botMsg = response.choices[0].message.content;
-    history.push({ role: 'assistant', content: botMsg });
-
-    this.conversations[convId] = history;
-
-    const currentPromptTokens = response.usage?.prompt_tokens ?? 0;
-    const currentCompletionTokens = response.usage?.completion_tokens ?? 0;
-
-    this.tokenUsage[convId].promptTokens += currentPromptTokens;
-    this.tokenUsage[convId].completionTokens += currentCompletionTokens;
-
-    this.cost[convId] +=
-      (currentPromptTokens * this.prompts.getPrice(this.prompts.getModelFromModelName(model)).prompt_tokens) / 1000000;
-    this.cost[convId] +=
-      (currentCompletionTokens * this.prompts.getPrice(this.prompts.getModelFromModelName(model)).completion_tokens) /
-      1000000;
-
-    Logger.log(
-      `Model: ${model}, Prompt Tokens: ${currentPromptTokens}, Completion Tokens: ${currentCompletionTokens}, Cost: ${this.cost[convId].toFixed(6)}`,
-      'ChatService',
-    );
+    void this.saveUserMessage(convId, userMessage);
+    void this.saveAssistantMessage(convId, botMsg, response.usage?.prompt_tokens ?? 0, response.usage?.completion_tokens ?? 0, model);
 
     return {
       conversationId: convId,
       message: botMsg,
-      promptTokens: this.tokenUsage[convId].promptTokens,
-      completionTokens: this.tokenUsage[convId].completionTokens,
+      promptTokens: 0,
+      completionTokens: 0,
     };
+  }
+
+  private async saveUserMessage(convId: string, content: string) {
+    try {
+      const pool = this.dbService.getPool();
+      await pool.query(
+        'INSERT INTO messages (conversation_id, role, content) VALUES ($1, $2, $3)',
+        [convId, 'user', content],
+      );
+    } catch (err) {
+      Logger.error('Failed to insert user message', err);
+    }
+  }
+
+  private async saveAssistantMessage(convId: string, content: string, inputTokens: number, outputTokens: number, model: string) {
+    try {
+      const pool = this.dbService.getPool();
+      const modelPrice = this.prompts.getPrice(this.prompts.getModelFromModelName(model));
+      const cost = (inputTokens * modelPrice.prompt_tokens + outputTokens * modelPrice.completion_tokens) / 1000000;
+
+      await pool.query(
+        'INSERT INTO messages (conversation_id, role, content, input_tokens, output_tokens, cost) VALUES ($1, $2, $3, $4, $5, $6)',
+        [convId, 'assistant', content, inputTokens, outputTokens, cost],
+      );
+    } catch (err) {
+      Logger.error('Failed to insert assistant message', err);
+    }
   }
 }
