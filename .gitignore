@@ -1,17 +1,9 @@
-__pycache__
-
 bob/node_modules/
 bob/node_modules/*
 
 server/dist
 server/node_modules
 server/build
-
-nginx/.htpasswd
-nginx/logs
-
-data/certbot/conf/*
-data/certbot/www/*
 
 .env
 

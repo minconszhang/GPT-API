@@ -1,37 +1,83 @@
-import { Controller, Get, Post, Body, Session, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Session, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
+import { Pool } from 'pg'
+import * as bcrypt from 'bcrypt';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+})
 
 @Controller('auth')
 export class AuthController {
   @Get('status')
   getAuth(@Session() session: Record<string, any>) {
-    if (session.loggedIn) {
-        return {
-            user: process.env.AUTH_USERNAME,
-        }
+    if (session.loggedIn && session.user) {
+      return {
+        user: session.user,
+        success: true,
+      }
     }
     throw new UnauthorizedException('Unauthorized');
   }
 
   @Post('login')
-  login(@Body() body: { username: string, password: string }, @Session() session: Record<string, any>) {
+  async login(@Body() body: { username: string, password: string }, @Session() session: Record<string, any>) {
     const { username, password } = body;
 
-    if (username === process.env.AUTH_USERNAME && password === process.env.AUTH_PASSWORD) {
+    try {
+      const query = 'SELECT * FROM users WHERE username = $1';
+      const result = await pool.query(query, [username]);
+
+      if (result.rows.length === 0) {
+        throw new UnauthorizedException('Invalid username or password');
+      }
+
+      const user = result.rows[0];
+
+      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid username or password');
+      }
+
       session.loggedIn = true;
+      session.user = user.username;
       return {
         message: 'Login successful',
         success: true,
       }
-    }
 
-    throw new UnauthorizedException('Invalid username or password');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      throw new InternalServerErrorException('Failed to log in');
+    }
   }
 
   @Post('logout')
   logout(@Session() session: Record<string, any>) {
-    session.destroy(() => {});
+    session.destroy(() => { });
     return {
       message: 'Logout successful',
+      success: true,
+    }
+  }
+
+  @Post('signup')
+  async signup(@Body() body: { username: string, password: string }) {
+    const { username, password } = body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const query = 'INSERT INTO users (username, password_hash) VALUES ($1, $2)';
+
+    try {
+      await pool.query(query, [username, hashedPassword]);
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw new InternalServerErrorException('Failed to sign up');
+    }
+
+    return {
+      message: 'Signup successful',
       success: true,
     }
   }
