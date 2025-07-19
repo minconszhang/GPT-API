@@ -84,7 +84,7 @@ export class ChatService {
 
             if (delta) {
               fullContent += delta;
-              res.write(`data: ${delta}\n\n`);
+              res.write(`data: ${JSON.stringify(delta)}\n\n`);
             }
           } catch (err) {
             Logger.warn('Error parsing JSON:', jsonStr);
@@ -102,7 +102,7 @@ export class ChatService {
         const delta = chunk.choices?.[0]?.delta?.content;
         if (delta) {
           fullContent += delta;
-          res.write(`data: ${delta}\n\n`);
+          res.write(`data: ${JSON.stringify(delta)}\n\n`);
         }
       }
     }

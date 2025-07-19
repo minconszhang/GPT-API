@@ -2,10 +2,12 @@
 
 import { useContext, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import { ChatContext } from '../context/ChatContext';
 import { Textarea } from '@/components/ui/textarea';
 import { twMerge } from 'tailwind-merge';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 
 export const ChatClient = () => {
     const [loading, setLoading] = useState(false);
@@ -75,7 +77,16 @@ export const ChatClient = () => {
                     es.close();
                     return;
                 }
-                fullText += event.data;
+
+                // Parse the JSON data from the event, spicially for \n and other special characters
+                let deltaContent;
+                try {
+                    deltaContent = JSON.parse(event.data);
+                } catch {
+                    deltaContent = event.data;
+                }
+
+                fullText += deltaContent;
                 setMessages(prev => {
                     const updated = [...prev];
                     const last = updated[updated.length - 1];
@@ -118,13 +129,17 @@ export const ChatClient = () => {
                     <div
                         key={idx}
                         className={twMerge(
-                            'max-w-full whitespace-pre-wrap overflow-wrap-anywhere word-break-break-word text-md font-light',
+                            'max-w-full break-words text-base/loose font-light',
                             msg.sender === 'user'
                                 ? 'px-4 py-1.5 self-end bg-gray-100 text-black rounded-2xl'
                                 : 'self-start text-black'
                         )}
                     >
-                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkBreaks]}
+                        >
+                            {msg.text}
+                        </ReactMarkdown>
                     </div>
                 ))}
                 {loading && (
@@ -169,8 +184,8 @@ export const ChatClient = () => {
                         rows={1}
                     />
                     <Button
-                        variant="ghost"
-                        size="icon"
+                        variant='ghost'
+                        size='icon'
                         className='self-center rounded-full cursor-pointer'
                         onClick={() => {
                             if (input.trim()) {
@@ -182,12 +197,12 @@ export const ChatClient = () => {
                         }}
                         disabled={loading || !input.trim()}
                     >
-                        <img 
-                            src="/arrow-up-circle.svg" 
-                            alt="Send message" 
-                            width={20} 
+                        <img
+                            src='/arrow-up-circle.svg'
+                            alt='Send message'
+                            width={20}
                             height={20}
-                            className="size-9"
+                            className='size-9'
                         />
                     </Button>
                 </form>
