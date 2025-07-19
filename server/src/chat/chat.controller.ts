@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Query, Controller, Get, Res } from '@nestjs/common';
 import { ChatDto } from './chat.dto';
 import { ChatService } from './chat.service';
 import { Response } from 'express';
@@ -8,10 +8,8 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   // Stream chat response
-  @Post('stream')
-  async chatStream(@Body() body: ChatDto, @Res() res: Response) {
-    const { model, userMessage, conversationId } = body;
-
+  @Get('stream')
+  async chatStream(@Res() res: Response, @Query('model') model: string, @Query('userMessage') userMessage: string, @Query('conversationId') conversationId?: string) {
     // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
