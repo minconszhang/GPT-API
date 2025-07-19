@@ -51,6 +51,8 @@ export const ChatClient = () => {
             es.addEventListener('meta', (event) => {
                 const meta = JSON.parse(event.data);
                 setConversationId(meta.conversationId);
+                setPromptTokens((prev) => prev + meta.inputTokens);
+                setCompletionTokens((prev) => prev + meta.outputTokens);
             });
 
             es.onmessage = (event) => {
@@ -78,10 +80,6 @@ export const ChatClient = () => {
                     { sender: "bot", text: "Oops, something went wrong." },
                 ]);
             };
-
-            // setConversationId(res.data.conversationId);
-            // setPromptTokens(res.data.promptTokens);
-            // setCompletionTokens(res.data.completionTokens);
         } catch (err) {
             console.error(err);
             setMessages((prev) => [

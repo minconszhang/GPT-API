@@ -4,6 +4,7 @@ import { PromptService } from '../llm/llm.service';
 import { DbService } from 'src/db/db.service';
 import axios from 'axios';
 import { Response } from 'express';
+import { encoding_for_model } from "tiktoken";
 
 @Injectable()
 export class ChatService {
@@ -106,12 +107,22 @@ export class ChatService {
       }
     }
 
-    res.write(`event: meta\ndata: ${JSON.stringify({ conversationId: convId, })}\n\n`);
+    var enc: import("tiktoken").Tiktoken;
+    if (model === '千问免费版') {
+      // Pick a ramdom model from the list of models
+      enc = encoding_for_model('gpt-3.5-turbo');
+    } else {
+      enc = encoding_for_model(this.prompts.getModelFromModelName(model) as any as import("tiktoken").TiktokenModel);
+    }
+    const inputTokens = this.countInputTokens(historyMessages, enc);
+    const outputTokens = enc.encode(fullContent).length;
+
+    res.write(`event: meta\ndata: ${JSON.stringify({ conversationId: convId, inputTokens: inputTokens, outputTokens: outputTokens})}\n\n`);
     res.write('data: [DONE]\n\n');
     res.end();
 
     void this.saveUserMessage(convId, userMessage);
-    void this.saveAssistantMessage(convId, fullContent, 0, 0, model);
+    void this.saveAssistantMessage(convId, fullContent, inputTokens, outputTokens, model);
   }
 
   private async saveUserMessage(convId: string, content: string) {
@@ -140,4 +151,14 @@ export class ChatService {
       Logger.error('Failed to insert assistant message', err);
     }
   }
+
+  private countInputTokens(messages: { role: string; content: string }[], enc: import("tiktoken").Tiktoken) {
+      let tokens = 0;
+      for (const message of messages) {
+        tokens += enc.encode(message.role).length;
+        tokens += enc.encode(message.content).length;
+      }
+      tokens += 3 * messages.length + 2;
+      return tokens;
+    }
 }
