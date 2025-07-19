@@ -15,7 +15,7 @@ export default async function Page() {
       <AuthCheck />
       <ChatProvider>
         <Header modelList={modelsName} />
-        <ChatClient />
+        <ChatClient/>
       </ChatProvider>
     </div>
   );
