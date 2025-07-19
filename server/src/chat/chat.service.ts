@@ -86,7 +86,7 @@ export class ChatService {
               res.write(`data: ${delta}\n\n`);
             }
           } catch (err) {
-            console.warn('Error parsing JSON:', jsonStr);
+            Logger.warn('Error parsing JSON:', jsonStr);
           }
         }
       }
@@ -106,6 +106,7 @@ export class ChatService {
       }
     }
 
+    res.write(`event: meta\ndata: ${JSON.stringify({ conversationId: convId, })}\n\n`);
     res.write('data: [DONE]\n\n');
     res.end();
 

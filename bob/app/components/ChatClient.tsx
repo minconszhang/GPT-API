@@ -48,6 +48,11 @@ export const ChatClient = () => {
             const es = new EventSource(url);
             let fullText = '';
 
+            es.addEventListener('meta', (event) => {
+                const meta = JSON.parse(event.data);
+                setConversationId(meta.conversationId);
+            });
+
             es.onmessage = (event) => {
                 if (event.data === '[DONE]') {
                     setLoading(false);
