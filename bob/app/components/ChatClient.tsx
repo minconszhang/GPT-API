@@ -43,7 +43,7 @@ export const ChatClient = () => {
         setLoading(true);
 
         try {
-            const url = `/api/chat/stream?model=${encodeURIComponent(selectedModel)}&userMessage=${encodeURIComponent(input)}${conversationId ? `&conversationId=${conversationId}` : ''}`;
+            const url = `/api/chat?model=${encodeURIComponent(selectedModel)}&userMessage=${encodeURIComponent(input)}${conversationId ? `&conversationId=${conversationId}` : ''}`;
 
             const es = new EventSource(url);
             let fullText = '';

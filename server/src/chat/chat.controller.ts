@@ -7,8 +7,7 @@ import { Response } from 'express';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  // Stream chat response
-  @Get('stream')
+  @Get()
   async chatStream(@Res() res: Response, @Query('model') model: string, @Query('userMessage') userMessage: string, @Query('conversationId') conversationId?: string) {
     // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');
