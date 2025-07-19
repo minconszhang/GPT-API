@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { PromptService } from '../llm/llm.service';
 import { DbService } from 'src/db/db.service';
 import axios from 'axios';
+import { Response } from 'express';
 
 @Injectable()
 export class ChatService {
@@ -10,7 +11,8 @@ export class ChatService {
 
   private readonly client = new OpenAI();
 
-  async processChat(
+  async processChatStream(
+    res: Response,
     model: string,
     userMessage: string,
     conversationId?: string,
@@ -20,25 +22,28 @@ export class ChatService {
       throw new BadRequestException('model and userMessage are required');
     }
 
+    const pool = this.dbService.getPool();
+
     // TODO: support multiple users in the future
     if (!userId) {
       userId = '1';
     }
 
-    const pool = this.dbService.getPool();
-
     let convId = '';
     if (!conversationId) {
+      // Create a new conversation
       const query = `INSERT INTO conversations (user_id) VALUES ($1) RETURNING id`;
       const result = await pool.query(query, [userId]);
       convId = result.rows[0].id;
 
+      // Insert system message
       const query2 = `INSERT INTO messages (conversation_id, role, content) VALUES ($1, $2, $3)`;
       await pool.query(query2, [convId, 'system', this.prompts.getPromptFromModelName(model)]);
     } else {
       convId = conversationId;
     }
 
+    // Insert user message
     const query3 = `SELECT role, content FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC`;
     const history = await pool.query(query3, [convId]);
 
@@ -52,37 +57,60 @@ export class ChatService {
       content: userMessage,
     });
 
-    let response: any;
+    let fullContent = '';
     if (model === '千问免费版') {
-      response = await axios.post('http://localhost:1234/v1/chat/completions', {
-        model: this.prompts.getModelFromModelName(model),
-        messages: historyMessages,
-      });
+      const response = await axios.post(
+        'http://localhost:1234/v1/chat/completions',
+        {
+          model: this.prompts.getModelFromModelName(model),
+          messages: historyMessages,
+          stream: true,
+        },
+        { responseType: 'stream' },
+      );
 
-      response = response.data;
+      for await (const chunk of response.data) {
+        const text = chunk.toString('utf-8');
+        const lines = text.split('\n').filter(line => line.startsWith('data: '));
 
-      console.log(response, 'Response');
+        for (const line of lines) {
+          const jsonStr = line.replace(/^data:\s*/, '');
+          if (jsonStr === '[DONE]') continue;
 
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = parsed.choices?.[0]?.delta?.content;
+
+            if (delta) {
+              fullContent += delta;
+              res.write(`data: ${delta}\n\n`);
+            }
+          } catch (err) {
+            console.warn('Error parsing JSON:', jsonStr);
+          }
+        }
+      }
     } else {
-      response = await this.client.chat.completions.create({
+      const response = await this.client.chat.completions.create({
         model: this.prompts.getModelFromModelName(model),
         messages: historyMessages,
+        stream: true,
       });
+
+      for await (const chunk of response) {
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) {
+          fullContent += delta;
+          res.write(`data: ${delta}\n\n`);
+        }
+      }
     }
 
-    const botMsg = response.choices[0].message.content ?? '';
-
-    Logger.log(response, 'Response');
+    res.write('data: [DONE]\n\n');
+    res.end();
 
     void this.saveUserMessage(convId, userMessage);
-    void this.saveAssistantMessage(convId, botMsg, response.usage?.prompt_tokens ?? 0, response.usage?.completion_tokens ?? 0, model);
-
-    return {
-      conversationId: convId,
-      message: botMsg,
-      promptTokens: 0,
-      completionTokens: 0,
-    };
+    void this.saveAssistantMessage(convId, fullContent, 0, 0, model);
   }
 
   private async saveUserMessage(convId: string, content: string) {

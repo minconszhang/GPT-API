@@ -1,6 +1,6 @@
 "use client";
 
-import axios from "axios";
+// import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import styles from "../../styles/Home.module.css";
@@ -8,12 +8,12 @@ import { ChatContext } from "../context/ChatContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-interface ChatResponse {
-    conversationId: string;
-    message: string;
-    promptTokens: number;
-    completionTokens: number;
-}
+// interface ChatResponse {
+//     conversationId: string;
+//     message: string;
+//     promptTokens: number;
+//     completionTokens: number;
+// }
 
 export const ChatClient = () => {
     const [loading, setLoading] = useState(false);
@@ -51,19 +51,72 @@ export const ChatClient = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post<ChatResponse>("/api/chat", {
-                model: selectedModel,
-                userMessage: input,
-                conversationId,
+            // const res = await axios.post<ChatResponse>("/api/chat", {
+            //     model: selectedModel,
+            //     userMessage: input,
+            //     conversationId,
+            // });
+
+            const res = await fetch('/api/chat/stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: selectedModel,
+                    userMessage: input,
+                    conversationId,
+                }),
             });
 
-            setConversationId(res.data.conversationId);
-            setMessages((prev) => [
-                ...prev,
-                { sender: "bot", text: res.data.message },
-            ]);
-            setPromptTokens(res.data.promptTokens);
-            setCompletionTokens(res.data.completionTokens);
+            if (!res.body) throw new Error('No response body');
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullText = '';
+
+            setMessages((prev) => [...prev, { sender: 'bot', text: '' }]); // 插入占位符
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const parts = chunk
+                    .split('\n')
+                    .filter((line) => line.startsWith('data: '))
+                    .map((line) => line.replace(/^data: /, ''));
+
+                for (const part of parts) {
+                    if (part === '[DONE]') {
+                    setLoading(false);
+                    return;
+                    }
+
+                    fullText += part;
+
+                    // 更新最后一条消息
+                    setMessages((prev) => {
+                    const updated = [...prev];
+                    const last = updated[updated.length - 1];
+                    if (last && last.sender === 'bot') {
+                        updated[updated.length - 1] = {
+                        ...last,
+                        text: fullText,
+                        };
+                    }
+                    return updated;
+                    });
+                }
+            }
+
+            // setConversationId(res.data.conversationId);
+            // setMessages((prev) => [
+            //     ...prev,
+            //     { sender: "bot", text: res.data.message },
+            // ]);
+            // setPromptTokens(res.data.promptTokens);
+            // setCompletionTokens(res.data.completionTokens);
         } catch (err) {
             console.error(err);
             setMessages((prev) => [
