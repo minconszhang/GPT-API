@@ -54,6 +54,7 @@ export class PromptService {
           | 2    | from AAA         | 用词     | 改为 BBB     | 建议             |  
           ……
       `,
+    6: `You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture. Personality: v2`,
   };
 
   private static readonly MODELS: Record<string, string> = {
@@ -62,6 +63,7 @@ export class PromptService {
     '3': 'gpt-4.1',
     '4': 'o4-mini',
     '5': 'gpt-4.1-mini',
+    '6': 'qwen/qwen3-30b-a3b',
   };
 
   private static readonly MODELS_NAME: Record<string, string> = {
@@ -70,6 +72,7 @@ export class PromptService {
     '3': '4.1 完全版',
     '4': 'O4 思考版',
     '5': 'IELTS 写作老师',
+    '6': '千问免费版',
   };
 
   private static readonly PRICES: Record<
@@ -80,6 +83,7 @@ export class PromptService {
       'gpt-4.1-nano': { prompt_tokens: 0.1, completion_tokens: 0.4 },
       'gpt-4.1': { prompt_tokens: 2, completion_tokens: 8 },
       'o4-mini': { prompt_tokens: 1.1, completion_tokens: 4.4 },
+      'qwen/qwen3-30b-a3b': { prompt_tokens: 0, completion_tokens: 0 },
     };
 
   getPromptFromModelName(modelName: string): string {

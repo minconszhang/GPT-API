@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { PromptService } from '../llm/llm.service';
 import { DbService } from 'src/db/db.service';
+import axios from 'axios';
 
 @Injectable()
 export class ChatService {
@@ -51,10 +52,23 @@ export class ChatService {
       content: userMessage,
     });
 
-    const response = await this.client.chat.completions.create({
-      model: this.prompts.getModelFromModelName(model),
-      messages: historyMessages,
-    });
+    let response: any;
+    if (model === '千问免费版') {
+      response = await axios.post('http://localhost:1234/v1/chat/completions', {
+        model: this.prompts.getModelFromModelName(model),
+        messages: historyMessages,
+      });
+
+      response = response.data;
+
+      console.log(response, 'Response');
+
+    } else {
+      response = await this.client.chat.completions.create({
+        model: this.prompts.getModelFromModelName(model),
+        messages: historyMessages,
+      });
+    }
 
     const botMsg = response.choices[0].message.content ?? '';
 
